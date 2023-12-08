@@ -1,3 +1,14 @@
+/*
+ * @Author: Talos--1660327787@qq.com
+ * @Date: 2023-12-03 20:52:28
+ * @LastEditors: Talos--1660327787@qq.com
+ * @LastEditTime: 2023-12-07 23:38:38
+ * @FilePath: /PoolGame-Web/GameState.js
+ * @Description: 管理游戏状态和交互
+ * 
+ * Copyright (c) 2023 by five-forever, All Rights Reserved. 
+ */
+
 import { GameUI } from './GameUI.js';
 
 class GameState{
@@ -7,31 +18,32 @@ class GameState{
       this.ui = new GameUI();
       this.initGame();
       const btn = document.getElementById('playBtn');
+      // 绑定点击开始事件和空格蓄力事件
       btn.onclick = this.startGame.bind(this);
-      document.addEventListener( 'keydown', this.keydown.bind(this));
-      document.addEventListener( 'keyup', this.keyup.bind(this));
+      document.addEventListener('keydown', this.keydown.bind(this));
+      document.addEventListener('keyup', this.keyup.bind(this));
     }
-  
+    
     showPlayBtn(){
       this.ui.show('playBtn');
     }
-
+    // 开始游戏：显示UI->重置世界状态->初始化游戏->开始回合
     startGame(){
       this.ui.showGameHud(true);
       this.game.reset();
       this.initGame();
       this.startTurn();
     }
-
-    keydown( evt ){
+    // 空格显示蓄力
+    keydown(evt){
       if (this.state !== 'turn') return;
-
+      
       if (evt.keyCode == 32){
           this.ui.strengthBar.visible = true;
       }
     }
-
-    keyup( evt ){
+    // 释放空格 击打白球
+    keyup(evt){
       if (this.state !== 'turn') return;
       
       if (evt.keyCode == 32){
@@ -39,7 +51,7 @@ class GameState{
           this.hit(this.ui.strengthBar.strength);
       }
     }
-
+    // 初始化游戏状态，包括桌上的编号球、当前回合的玩家、球的归属方向等
     initGame(){
       this.numberedBallsOnTable = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
       
@@ -49,17 +61,15 @@ class GameState{
         player1: '?',
         player2: '?'
       };
-  
+      // 是否有球进袋
       this.pocketingOccurred = false;
-  
       this.state = 'notstarted';
-  
       this.ticker = undefined;
     }
-  
-    startTurn() {
+    // 开启新回合
+    startTurn(){
       if (this.state == 'gameover') return;
-      // enable movement
+      // 开启计时器
       this.timer = 30;
       this.tickTimer();
       this.state = 'turn';
@@ -68,12 +78,12 @@ class GameState{
       const str = this.turn == 'player1' ? 'Player 1' : 'Player 2';
       this.ui.log(`${str} to play`);
     }
-  
-    whiteBallEnteredHole() {
+    // 白球摔袋 打印log
+    whiteBallEnteredHole(){
       this.ui.log(`Cue ball pocketed by ${this.turn}!`);
     }
-  
-    coloredBallEnteredHole(id) {
+    // 进球
+    coloredBallEnteredHole(id){
       if (id === undefined) return;
       
       this.numberedBallsOnTable = this.numberedBallsOnTable.filter( num => {
@@ -82,8 +92,8 @@ class GameState{
 
       if (id == 0)  return;
   
-      if (id == 8) {
-        if (this.numberedBallsOnTable.length > 1) {
+      if (id == 8){
+        if (this.numberedBallsOnTable.length > 1){
             this.ui.log(`Game over! 8 ball pocketed too early by ${this.turn}`);
             this.turn = this.turn == 'player1' ? 'player2': 'player1';
         }
@@ -92,13 +102,13 @@ class GameState{
   
         // Win!
         this.endGame();
-    } else {
-      if (this.sides.player1 == '?' || this.sides.player2 == '?') {
+      } else {
+      if (this.sides.player1 == '?' || this.sides.player2 == '?'){
         this.sides[this.turn] = id < 8 ? 'solid' : 'striped';
         this.sides[this.turn == 'player1' ? 'player2' : 'player1'] = id > 8 ? 'solid' : 'striped';
         this.pocketingOccurred = true;
       } else {
-        if ((this.sides[this.turn] == 'solid' && id < 8) || (this.sides[this.turn] == 'striped' && id > 8)) {
+        if ((this.sides[this.turn] == 'solid' && id < 8) || (this.sides[this.turn] == 'striped' && id > 8)){
           // another turn
           this.pocketingOccurred = true;
         } else {
@@ -108,8 +118,8 @@ class GameState{
       }
     }
   }
-  
-  tickTimer() {
+  // 每秒更新计时器
+  tickTimer(){
     this.ui.updateTimer(this.timer);
     if (this.timer == 0) {
       this.ui.log(`${this.turn} ran out of time`);
@@ -121,24 +131,24 @@ class GameState{
       this.ticker = setTimeout(this.tickTimer.bind(this), 1000);
     }
   }
-  
-  switchSides() {
+  // 换边
+  switchSides(){
     this.turn = this.turn == 'player1' ? 'player2': 'player1';
   }
-  
-  endGame() {
+  // 结束游戏
+  endGame(){
     this.state = 'gameover';
     const winner = this.turn == 'player1' ? 'Player 1' : 'Player 2';
     clearTimeout(this.ticker);
-    this.ui.showMessage(`${winner} won!`, 'Thank you for playing');
+    this.ui.showMessage(`${winner} 获胜!`, '感谢游玩！');
   }
-  
-  hit(strength) {
+  // 处理击打 等待回合结算
+  hit(strength){
     this.game.strikeCueball(strength);
     clearTimeout(this.ticker);
     this.state = 'turnwaiting';
   }
-
+  // 检查球睡眠状态，所有球静止则结算换边
   checkSleeping(){
     if (!this.game.cueball.isSleeping) return;
 
@@ -149,14 +159,13 @@ class GameState{
     }
 
     if (!this.pocketingOccurred) this.switchSides();
-
     this.pocketingOccurred = false;
 
-    setTimeout( this.startTurn.bind(this), 1000);
+    setTimeout(this.startTurn.bind(this), 1000);
 
     this.state = 'paused';
   }
-
+  // 检测是否碰撞完毕
   update(dt){
     if (this.state == 'turnwaiting') this.checkSleeping();
     this.ui.update();

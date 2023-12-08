@@ -1,3 +1,14 @@
+/*
+ * @Author: Talos--1660327787@qq.com
+ * @Date: 2023-12-03 20:52:28
+ * @LastEditors: Talos--1660327787@qq.com
+ * @LastEditTime: 2023-12-07 23:39:38
+ * @FilePath: /PoolGame-Web/Ball.js
+ * @Description: 构造桌球Ball类，完成刚体属性和纹理设置，检测睡眠和碰撞落袋
+ * 
+ * Copyright (c) 2023 by five-forever, All Rights Reserved. 
+ */
+
 import * as THREE from './libs/three137/three.module.js';
 import * as CANNON from './libs/cannon-es.js';
 
@@ -8,45 +19,41 @@ class Ball{
     
     constructor(game, x, z, id=0) {
         this.id = id;
-    
         this.startPosition = new THREE.Vector3(x, Ball.RADIUS, z);
         this.mesh = this.createMesh(game.scene);
-        
         this.world = game.world;
         this.game = game;
-
         this.rigidBody = this.createBody(x, Ball.RADIUS, z);
         this.world.addBody(this.rigidBody);
         this.reset();
-
         this.name = `ball${id}`;
     }
-
-    get isSleeping(){
+    // 更新刚体属性的睡眠状态
+    get isSleeping() {
       return this.rigidBody.sleepState == CANNON.Body.SLEEPING;
     }
-
-    reset(){
+    // 摆球复位
+    reset() {
       this.rigidBody.velocity = new CANNON.Vec3(0);
       this.rigidBody.angularVelocity = new CANNON.Vec3(0);
-      this.rigidBody.position.copy( this.startPosition );
+      this.rigidBody.position.copy(this.startPosition);
       this.world.removeBody(this.rigidBody);
       this.world.addBody(this.rigidBody);
-      this.mesh.position.copy( this.startPosition );
+      this.mesh.position.copy(this.startPosition);
       this.mesh.rotation.set(0,0,0);
       this.mesh.visible = true;
       this.fallen = false;
     }
-
+    // 球进洞更新状态
     onEnterHole() {
       this.rigidBody.velocity = new CANNON.Vec3(0);
       this.rigidBody.angularVelocity = new CANNON.Vec3(0);
       this.world.removeBody(this.rigidBody);
       this.fallen = true;
       this.mesh.visible = false;
-      this.game.updateUI({event: 'balldrop', id: this.id } );
+      this.game.updateUI({event: 'balldrop', id: this.id});
     }
-    
+    // 创建刚体属性
     createBody(x,y,z) {
       const body = new CANNON.Body({
         mass: Ball.MASS, // kg
@@ -54,17 +61,17 @@ class Ball{
         shape: new CANNON.Sphere(Ball.RADIUS),
         material: Ball.MATERIAL
       });
-    
-      body.linearDamping = body.angularDamping = 0.5; // Hardcode
+
+      body.linearDamping = 0.5; // 运动时每帧线性速度减缓50%
+      body.angularDamping = 0.5; // 每帧角速度减缓 50%
+
       body.allowSleep = true;
-    
-      // Sleep parameters
-      body.sleepSpeedLimit = 2; // Body will feel sleepy if speed< 1 (speed == norm of velocity)
-      body.sleepTimeLimit = 0.1; // Body falls asleep after 0.1s of sleepiness
+      body.sleepSpeedLimit = 2; // 速度小于2考虑置为睡眠
+      body.sleepTimeLimit = 0.1; // 不受外力后0.1s进入睡眠
     
       return body;
     }
-
+    // 创建纹理
     createMesh (scene) {
         const geometry = new THREE.SphereGeometry(Ball.RADIUS, 16, 16);
         const material = new THREE.MeshStandardMaterial({
@@ -81,10 +88,8 @@ class Ball{
         }
   
         const mesh = new THREE.Mesh(geometry, material);
-    
         mesh.castShadow = true;
         mesh.receiveShadow = true;
-
         scene.add(mesh);
     
         return mesh;
@@ -96,7 +101,7 @@ class Ball{
         this.mesh.position.copy(this.rigidBody.position);
         this.mesh.quaternion.copy(this.rigidBody.quaternion);
       
-        // Has the ball fallen into a hole?
+        // 判断进球
         if (this.rigidBody.position.y < -Ball.RADIUS && !this.fallen) {
           this.onEnterHole();
         }
