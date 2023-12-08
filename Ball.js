@@ -2,7 +2,7 @@
  * @Author: Talos--1660327787@qq.com
  * @Date: 2023-12-03 20:52:28
  * @LastEditors: Talos--1660327787@qq.com
- * @LastEditTime: 2023-12-07 23:39:38
+ * @LastEditTime: 2023-12-08 22:39:04
  * @FilePath: /PoolGame-Web/Ball.js
  * @Description: 构造桌球Ball类，完成刚体属性和纹理设置，检测睡眠和碰撞落袋
  * 
@@ -17,7 +17,7 @@ class Ball{
     static MASS = 0.17;
     static MATERIAL = new CANNON.Material("ballMaterial");
     
-    constructor(game, x, z, id=0) {
+    constructor(game, x, z, id) {
         this.id = id;
         this.startPosition = new THREE.Vector3(x, Ball.RADIUS, z);
         this.mesh = this.createMesh(game.scene);

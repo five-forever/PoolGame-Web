@@ -2,9 +2,9 @@
  * @Author: Talos--1660327787@qq.com
  * @Date: 2023-12-03 20:52:28
  * @LastEditors: Talos--1660327787@qq.com
- * @LastEditTime: 2023-12-08 13:32:32
+ * @LastEditTime: 2023-12-08 22:36:17
  * @FilePath: /PoolGame-Web/Game.js
- * @Description: 整个游戏世界的创建，
+ * @Description: 整个游戏世界的创建，光照、相机、物理参数
  * 
  * Copyright (c) 2023 by five-forever, All Rights Reserved. 
  */
@@ -20,14 +20,18 @@ import { Ball } from './Ball.js';
 import { WhiteBall } from './WhiteBall.js';
 import { Table } from './Table.js';
 import { GameState } from './GameState.js';
+// DEBUG开关
+const DEBUG_MODE = true;
+const W = window.innerWidth;
+const H = window.innerHeight;
+let SPOTLIGHT_COLOR = 0xffffe5;
 
 class Game{
 	constructor(){
         this.initThree();
         this.initWorld();
         this.initScene();
-
-        this.gameState = new GameState(this);
+        this.gameState = new GameState(this); // 是否需要优化
 
         if (this.helper) this.helper.wireframe = true;
     }
@@ -36,46 +40,45 @@ class Game{
 		const container = document.createElement('div');
 		document.body.appendChild(container);
         
-        this.debug = false;
+        this.debug = DEBUG_MODE;
         this.loadingBar = new LoadingBar();
         this.clock = new THREE.Clock();
         this.scene = new THREE.Scene();
         this.scene.background = new THREE.Color(0x000000);
         // 添加环境光
-		const ambient = new THREE.HemisphereLight(0x0d0d0d, 0x020202, 0.01);
+		const ambient = new THREE.HemisphereLight(0xFFFFFF, 0x020202, 0.2);
 		this.scene.add(ambient);
         // 添加点光源
-        this.createLight(Table.LENGTH / 4);
-        this.createLight(-Table.LENGTH / 4);
+        this.createSpotLight(Table.LENGTH / 4);
+        this.createSpotLight(-Table.LENGTH / 4);
   		// threejs渲染器
 		this.renderer = new THREE.WebGLRenderer({antialias: true});
         this.renderer.shadowMap.enabled = true;
 		this.renderer.setPixelRatio(window.devicePixelRatio);
-		this.renderer.setSize(window.innerWidth, window.innerHeight);
+		this.renderer.setSize(W, H);
         this.renderer.outputEncoding = THREE.sRGBEncoding;
         this.renderer.physicallyCorrectLights = true;
         container.appendChild(this.renderer.domElement);
         // 相机
-		this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 20);
+		this.camera = new THREE.PerspectiveCamera(60, W/H, 0.1, 20);
 		this.camera.position.set(-3, 1.5, 0);
         // 相机控制
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.enableZoom = true;
         this.controls.enablePan = true;
-        this.controls.minDistance = 0.35;
-        this.controls.maxDistance = 1.65;
+        this.controls.minDistance = 0.3;
+        this.controls.maxDistance = 1.8;
         this.controls.maxPolarAngle = 0.49 * Math.PI; // 限制相机仰角（从下往上看的角度）
-          
         window.addEventListener('resize', this.resize.bind(this));
 	}	
     // 创建点光源并添加到场景中
-    createLight(x, debug=false){
-        const spotlight = new THREE.SpotLight(0xffffe5, 2.5, 10, 0.8, 0.5, 2);
+    createSpotLight(x){
+        const spotlight = new THREE.SpotLight(SPOTLIGHT_COLOR, 2.5, 10, 0.8, 0.5, 2);
           
         spotlight.position.set(x, 1.5, 0);
         spotlight.target.position.set(x, 0, 0); //垂直照射xz平面
-        spotlight.target.updateMatrixWorld();
-          
+        spotlight.target.updateMatrixWorld(); //更新世界矩阵
+        
         spotlight.castShadow = true;
         spotlight.shadow.camera.fov = 70;
         spotlight.shadow.camera.near = 1;
@@ -84,8 +87,8 @@ class Game{
         spotlight.shadow.mapSize.height = 2048;
           
         this.scene.add(spotlight);
-
-        if (debug){
+        
+        if (this.debug){
             const spotLightHelper = new THREE.SpotLightHelper(spotlight);
             this.scene.add(spotLightHelper);
         }
@@ -101,18 +104,16 @@ class Game{
     // 创建物理世界
     initWorld(){
         const w = new CANNON.World();
-
-        w.gravity.set(0, -9.82, 0); // m/s²
+        w.gravity.set(0, -9.8, 0); // m/s²
         w.solver.iterations = 10; // 物理计算迭代次数
         w.solver.tolerance = 0; // 强制求解器使用所有迭代
         w.allowSleep = true;
         w.fixedTimeStep = 1.0 / 60.0; // 60帧
-    
+
         this.setCollisionBehaviour(w);
+        this.world = w;
 
         if(this.debug) this.helper = new CannonHelper(this.scene, w);
-
-        this.world = w;
     }
     // 具体设置碰撞参数
     setCollisionBehaviour(world) {
@@ -122,13 +123,13 @@ class Game{
         const ball_floor = new CANNON.ContactMaterial(
           Ball.MATERIAL,
           Table.FLOOR_MATERIAL,
-          {friction: 0.7, restitution: 0.1}
+          {friction: 0.25, restitution: 0.1}
         );
         // 库边
         const ball_wall = new CANNON.ContactMaterial(
           Ball.MATERIAL,
           Table.WALL_MATERIAL,
-          {friction: 0.5, restitution: 0.6}
+          {friction: 0.25, restitution: 0.9}
         );
         world.addContactMaterial(ball_floor);
         world.addContactMaterial(ball_wall);
@@ -202,7 +203,7 @@ class Game{
         this.balls = [new WhiteBall(this, -Table.LENGTH/4, 0)];
         // 开局摆盘
         const rowInc = 1.74 * Ball.RADIUS;
-        let row = {x:Table.LENGTH/4+rowInc, count:6, total:6};
+        let row = {x: Table.LENGTH/4 + rowInc, count:6, total:6};
         const ids = [4,3,14,2,15,13,7,12,5,6,8,9,10,11,1];
         // 按行加载
         for(let i=0; i<15; i++){
@@ -212,7 +213,7 @@ class Game{
                 row.x -= rowInc;
                 row.z = (row.count-1) * (Ball.RADIUS + 0.002);
             }
-            this.balls.push( new Ball(this, row.x, row.z, ids[i]));
+            this.balls.push(new Ball(this, row.x, row.z, ids[i]));
             row.z -= 2 * (Ball.RADIUS + 0.002);
             row.total++;
         }
@@ -228,23 +229,25 @@ class Game{
             case 'whitedrop':
                 this.gameState.whiteBallEnteredHole();
                 break;
+            default:
+                console.log("event undefined!")
         }
     }
     // 适应浏览器窗口大小
     resize(){
-        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.aspect = W/H;
         this.camera.updateProjectionMatrix();
-        this.renderer.setSize(window.innerWidth, window.innerHeight);  
+        this.renderer.setSize(W, H);  
     }
     // 渲染函数
 	render(){   
         this.controls.target.copy(this.cueball.mesh.position);
         this.controls.update();
-        if (this.helper) this.helper.update();
         this.gameState.update();
         this.world.step(this.world.fixedTimeStep);
         this.balls.forEach(ball => ball.update());
         this.renderer.render(this.scene, this.camera);
+        if(this.helper) this.helper.update();
     }
 }
 

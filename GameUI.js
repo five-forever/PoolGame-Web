@@ -2,7 +2,7 @@
  * @Author: Talos--1660327787@qq.com
  * @Date: 2023-12-03 20:52:28
  * @LastEditors: Talos--1660327787@qq.com
- * @LastEditTime: 2023-12-07 21:07:06
+ * @LastEditTime: 2023-12-08 23:17:17
  * @FilePath: /PoolGame-Web/GameUI.js
  * @Description: 管理游戏中出现的ui，切换隐藏和显示
  * 
@@ -59,8 +59,8 @@ class GameUI{
   }
   // 更新球的状态（solid、striped、unknown） ballArr记录落袋的球
   updateBalls(ballArr, sides) {
-    const p1side = sides.player1 == '?' ? 'unknown' : sides.player1;
-    const p2side = sides.player2 == '?' ? 'unknown' : sides.player2;
+    const p1side = sides.player1 == '?' ? 'unknown' : sides.Player1;
+    const p2side = sides.player2 == '?' ? 'unknown' : sides.Player2;
 
     this.removeClass(document.getElementsByClassName('player1')[0], 'solid');
     this.removeClass(document.getElementsByClassName('player2')[0], 'solid');
@@ -78,7 +78,7 @@ class GameUI{
     for (let i=1;i<8;i++) {
       const el = document.createElement('li');
       el.textContent = i;
-      if (ballArr.indexOf(i) > -1) {
+      if(ballArr.indexOf(i) > -1){
 
       } else {
         this.addClass(el, 'pocketed');
@@ -87,14 +87,14 @@ class GameUI{
       elem.appendChild(el);
     }
 
-    document.getElementsByClassName(p1side == 'solid' ? 'player1' : 'player2')[0].replaceChild(elem, document.getElementsByClassName(p1side == 'solid' ? 'player1' : 'player2')[0].children[1]);
+    document.getElementsByClassName(p1side == 'solid' ? 'player1' : 'player2')[0].replaceChild(elem, document.getElementsByClassName(p1side == 'solid' ? 'Player1' : 'Player2')[0].children[1]);
     
     elem = document.createElement('ul');
 
     for (let i=9; i<16; i++) {
       const el = document.createElement('li');
       el.textContent = i;
-      if (ballArr.indexOf(i) > -1) {
+      if(ballArr.indexOf(i) > -1){
 
       } else {
         this.addClass(el, 'pocketed');
@@ -103,7 +103,7 @@ class GameUI{
       elem.appendChild(el);
     }
 
-    document.getElementsByClassName(p1side == 'striped' ? 'player1' : 'player2')[0].replaceChild(elem, document.getElementsByClassName(p1side == 'striped' ? 'player1' : 'player2')[0].children[1]);
+    document.getElementsByClassName(p1side == 'striped' ? 'player1' : 'player2')[0].replaceChild(elem, document.getElementsByClassName(p1side == 'striped' ? 'Player1' : 'Player2')[0].children[1]);
   }
   // 显示或隐藏HUD
   showGameHud(mode){

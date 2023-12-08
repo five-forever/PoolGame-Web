@@ -2,7 +2,7 @@
  * @Author: Talos--1660327787@qq.com
  * @Date: 2023-12-03 20:52:28
  * @LastEditors: Talos--1660327787@qq.com
- * @LastEditTime: 2023-12-07 23:38:38
+ * @LastEditTime: 2023-12-08 23:14:43
  * @FilePath: /PoolGame-Web/GameState.js
  * @Description: 管理游戏状态和交互
  * 
@@ -61,7 +61,7 @@ class GameState{
         player1: '?',
         player2: '?'
       };
-      // 是否有球进袋
+      // 未开局
       this.pocketingOccurred = false;
       this.state = 'notstarted';
       this.ticker = undefined;
@@ -75,8 +75,7 @@ class GameState{
       this.state = 'turn';
       this.ui.updateTurn(this.turn);
       this.ui.updateBalls(this.numberedBallsOnTable, this.sides);
-      const str = this.turn == 'player1' ? 'Player 1' : 'Player 2';
-      this.ui.log(`${str} to play`);
+      this.ui.log(`${this.turn} to play`);
     }
     // 白球摔袋 打印log
     whiteBallEnteredHole(){
@@ -86,30 +85,26 @@ class GameState{
     coloredBallEnteredHole(id){
       if (id === undefined) return;
       
-      this.numberedBallsOnTable = this.numberedBallsOnTable.filter( num => {
+      this.numberedBallsOnTable = this.numberedBallsOnTable.filter(num => {
           return num != id;
       });
 
       if (id == 0)  return;
   
-      if (id == 8){
+      if (id == 8){ // 进黑八
         if (this.numberedBallsOnTable.length > 1){
             this.ui.log(`Game over! 8 ball pocketed too early by ${this.turn}`);
             this.turn = this.turn == 'player1' ? 'player2': 'player1';
         }
-  
-        this.pocketingOccurred = true;
-  
-        // Win!
         this.endGame();
-      } else {
-      if (this.sides.player1 == '?' || this.sides.player2 == '?'){
+      } else { // 进普通球
+      if (this.sides.Player1 == '?' || this.sides.Player2 == '?'){
         this.sides[this.turn] = id < 8 ? 'solid' : 'striped';
         this.sides[this.turn == 'player1' ? 'player2' : 'player1'] = id > 8 ? 'solid' : 'striped';
         this.pocketingOccurred = true;
       } else {
         if ((this.sides[this.turn] == 'solid' && id < 8) || (this.sides[this.turn] == 'striped' && id > 8)){
-          // another turn
+          // 进球连杆
           this.pocketingOccurred = true;
         } else {
           this.pocketingOccurred = false;
@@ -138,9 +133,8 @@ class GameState{
   // 结束游戏
   endGame(){
     this.state = 'gameover';
-    const winner = this.turn == 'player1' ? 'Player 1' : 'Player 2';
     clearTimeout(this.ticker);
-    this.ui.showMessage(`${winner} 获胜!`, '感谢游玩！');
+    this.ui.showMessage(`${this.turn} 获胜!`, '感谢游玩！');
   }
   // 处理击打 等待回合结算
   hit(strength){
