@@ -2,7 +2,7 @@
  * @Author: Talos--1660327787@qq.com
  * @Date: 2023-12-03 20:52:28
  * @LastEditors: Talos--1660327787@qq.com
- * @LastEditTime: 2023-12-09 18:55:32
+ * @LastEditTime: 2023-12-09 22:42:16
  * @FilePath: /PoolGame-Web/GameUI.js
  * @Description: 管理游戏中出现的ui，切换隐藏和显示
  * 
@@ -27,7 +27,7 @@ class GameUI{
   removeClass(el, className) {
     if (el.classList) {
       el.classList.remove(className) 
-    } else {
+    } else { // TODO：有待优化
       el.className = el.className.replace(new RegExp('(^|\\b)' + className.split(' ').join('|') + '(\\b|$)', 'gi'), ' ') 
     }
   } 
@@ -129,7 +129,7 @@ class GameUI{
   }
   // 更新游戏加载进度条
   update(){
-    if (this.strengthBar.visible) this.strengthBar.update() 
+    if(this.strengthBar.visible) this.strengthBar.update() 
   }
 }
 

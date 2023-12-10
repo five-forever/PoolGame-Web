@@ -2,7 +2,7 @@
  * @Author: Talos--1660327787@qq.com
  * @Date: 2023-12-03 20:52:28
  * @LastEditors: Talos--1660327787@qq.com
- * @LastEditTime: 2023-12-09 18:52:43
+ * @LastEditTime: 2023-12-10 11:58:39
  * @FilePath: /PoolGame-Web/Ball.js
  * @Description: 构造桌球Ball类，完成刚体属性和纹理设置，检测睡眠和碰撞落袋
  * 
@@ -13,7 +13,7 @@ import * as THREE from './libs/three137/three.module.js'
 import * as CANNON from './libs/cannon-es.js' 
 
 class Ball{
-    static RADIUS = 0.05715 / 2 
+    static RADIUS = 0.05715/2 
     static MASS = 0.17 
     static MATERIAL = new CANNON.Material("ballMaterial") 
     
@@ -65,18 +65,16 @@ class Ball{
       body.angularDamping = 0.5  // 每帧角速度减缓 50%
       body.allowSleep = true 
       body.sleepSpeedLimit = 2  // 速度小于2考虑置为睡眠
-      body.sleepTimeLimit = 0.1  // 不受外力后0.1s进入睡眠
+      body.sleepTimeLimit = 0.1  // 静止后0.1s进入睡眠
       // 添加撞击音效
       const hitSound = new Audio('./assets/audio/pool-ball-hit.wav') 
       const playHitSound = collision => {
-        // const bodyA = collision.contact.bA 
-        // const bodyB = collision.contact.bB 
-        // console.log(`${bodyA}`)
-        const vec = collision.contact.normal 
-        console.log(`${vec}`) 
+        const material = collision.body["material"]
+        if(material == null) return // 未初始化完全
+        // 撞击力度
         const impactStrength = collision.contact.getImpactVelocityAlongNormal() 
-        
-        if(impactStrength > 0.35){
+        // 判断撞击对象和音效
+        if(material["name"]=="ballMaterial" && impactStrength>0.35){
           hitSound.currentTime = 0
           hitSound.volume = impactStrength*0.5>1 ? 1 :impactStrength*0.5 
           hitSound.play() 
@@ -88,14 +86,14 @@ class Ball{
     }
     // 创建纹理
     createMesh(scene){
-        const geometry = new THREE.SphereGeometry(Ball.RADIUS, 16, 16) 
+        const geometry = new THREE.SphereGeometry(Ball.RADIUS, 32, 32) 
         const material = new THREE.MeshStandardMaterial({
             metalness: 0.0,
             roughness: 0.1,
             envMap: scene.environment
         }) 
-  
-        if (this.id>0){
+        // 读取编号对应图片
+        if(this.id>0){
             const textureLoader = new THREE.TextureLoader().setPath('./assets/pool-table/').load(`${this.id}ball.png`, tex => {
                 material.map = tex 
                 material.needsUpdate = true 
@@ -111,13 +109,12 @@ class Ball{
     } 
  
     update(dt){
-        if (this.fallen) return 
+        if(this.fallen) return 
 
         this.mesh.position.copy(this.rigidBody.position) 
         this.mesh.quaternion.copy(this.rigidBody.quaternion) 
-      
         // 判断进球
-        if (this.rigidBody.position.y < -Ball.RADIUS && !this.fallen) {
+        if (this.rigidBody.position.y<-Ball.RADIUS && !this.fallen) {
           this.onEnterHole() 
         }
     }

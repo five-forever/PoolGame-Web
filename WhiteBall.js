@@ -2,9 +2,9 @@
  * @Author: Talos--1660327787@qq.com
  * @Date: 2023-12-03 20:52:28
  * @LastEditors: Talos--1660327787@qq.com
- * @LastEditTime: 2023-12-09 18:59:27
+ * @LastEditTime: 2023-12-09 21:41:51
  * @FilePath: /PoolGame-Web/WhiteBall.js
- * @Description: 
+ * @Description: Ball的子类，添加对白球的击打控制和辅助线定位等
  * 
  * Copyright (c) 2023 by five-forever, All Rights Reserved. 
  */
@@ -52,7 +52,7 @@ class WhiteBall extends Ball{
     update(dt) {
         super.update(dt) 
         // 静止后更新瞄准线
-        if (this.rigidBody.sleepState == CANNON.Body.SLEEPING) {
+        if(this.rigidBody.sleepState == CANNON.Body.SLEEPING){
             this.updateGuideLine() 
         } else {
             this.guideLine.visible = false 
@@ -73,18 +73,16 @@ class WhiteBall extends Ball{
         this.guideLine.visible = true 
         this.guideLine.getWorldDirection(this.forward) 
         this.forward.negate()  //反向
-
         this.raycaster.set(this.mesh.position, this.forward) 
-
+        // 求瞄准线交点
         let intersects = this.raycaster.intersectObjects(this.balls) 
-
-        if (intersects.length > 0){
+        if(intersects.length>0){
             this.guideLine.scale.z = intersects[0].distance 
             this.dot.position.copy(intersects[0].point) 
             this.dot.visible = true 
         }else{
             intersects = this.raycaster.intersectObjects(this.game.edges.children) 
-            if (intersects.length > 0){
+            if(intersects.length>0){
                 this.guideLine.scale.z = intersects[0].distance 
             }
             this.dot.visible = false 
