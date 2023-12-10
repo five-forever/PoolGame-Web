@@ -2,7 +2,7 @@
  * @Author: Talos--1660327787@qq.com
  * @Date: 2023-12-03 20:52:28
  * @LastEditors: Talos--1660327787@qq.com
- * @LastEditTime: 2023-12-10 11:58:39
+ * @LastEditTime: 2023-12-10 16:02:02
  * @FilePath: /PoolGame-Web/Ball.js
  * @Description: 构造桌球Ball类，完成刚体属性和纹理设置，检测睡眠和碰撞落袋
  * 
@@ -94,7 +94,8 @@ class Ball{
         }) 
         // 读取编号对应图片
         if(this.id>0){
-            const textureLoader = new THREE.TextureLoader().setPath('./assets/pool-table/').load(`${this.id}ball.png`, tex => {
+            const textureLoader = new THREE.TextureLoader().setPath('./assets/pool-table/')
+                                      .load(`${this.id}ball.png`, tex => {
                 material.map = tex 
                 material.needsUpdate = true 
             }) 
