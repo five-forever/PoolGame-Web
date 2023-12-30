@@ -2,7 +2,7 @@
  * @Author: Talos--1660327787@qq.com
  * @Date: 2023-12-03 20:52:28
  * @LastEditors: Talos--1660327787@qq.com
- * @LastEditTime: 2023-12-10 13:20:57
+ * @LastEditTime: 2023-12-30 19:26:48
  * @FilePath: /PoolGame-Web/Game.js
  * @Description: 整个游戏世界的创建，光照、相机、物理参数
  * 
@@ -20,6 +20,7 @@ import { Ball } from './Ball.js'
 import { WhiteBall } from './WhiteBall.js' 
 import { Table } from './Table.js' 
 import { GameState } from './GameState.js' 
+import { NetManager } from './NetManager.js'
 
 const DEBUG_MODE = false  // DEBUG开关
 const SPOTLIGHT_COLOR = 0xffffe5 // 点光源颜色
@@ -33,6 +34,8 @@ class Game{
         this.gameState = new GameState(this) // 是否需要优化
 
         if(this.helper) this.helper.wireframe = true 
+
+        this.netManager = new NetManager()
     }
 
     initThree(){
