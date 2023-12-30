@@ -2,7 +2,7 @@
  * @Author: Talos--1660327787@qq.com
  * @Date: 2023-12-30 19:00:37
  * @LastEditors: Talos--1660327787@qq.com
- * @LastEditTime: 2023-12-30 19:55:06
+ * @LastEditTime: 2023-12-31 01:09:56
  * @FilePath: /PoolGame-Web/NetManager.js
  * @Description: 
  * 
@@ -10,7 +10,7 @@
  */
 class NetManager {
     constructor() {
-        const ws = new WebSocket('ws://101.132.70.132:8080/ws')
+        const ws = new WebSocket('wss://101.132.70.132:8080/ws')
 
         ws.addEventListener('open', (evt)=>{
             console.log('socket已打开')
