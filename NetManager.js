@@ -2,7 +2,7 @@
  * @Author: Talos--1660327787@qq.com
  * @Date: 2023-12-30 19:00:37
  * @LastEditors: Talos--1660327787@qq.com
- * @LastEditTime: 2023-12-30 19:42:34
+ * @LastEditTime: 2023-12-30 19:55:06
  * @FilePath: /PoolGame-Web/NetManager.js
  * @Description: 
  * 
@@ -36,3 +36,5 @@ class NetManager {
         })
     }
 }
+
+export { NetManager } 
